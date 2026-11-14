@@ -1,7 +1,7 @@
-// Configuration for Bingkai Bisu — Fixlens Festival 2026 Photobooth
+// Configuration for Bingkai Bisu: Fixlens Festival 2026 Photobooth
 
 export const APP_CONFIG = {
-  eventName: "Bingkai Bisu — Fixlens Festival 2026",
+  eventName: "Bingkai Bisu: Fixlens Festival 2026",
   adminPin: "2026",
   countdownSeconds: 3,
   livePhotoDurationMs: 1500,

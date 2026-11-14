@@ -1,4 +1,4 @@
-# Bingkai Bisu — Fixlens Festival 2026
+# Bingkai Bisu: Fixlens Festival 2026
 ### Digital Photobooth Web Application
 
 A lightweight, zero-dependency, static photobooth web application built with pure HTML5, CSS3, and Vanilla JavaScript (ES Modules). Ready to be deployed directly to GitHub Pages at **[https://github.com/nafiszakiramdhan-web/strip](https://github.com/nafiszakiramdhan-web/strip)**.
@@ -49,7 +49,7 @@ A lightweight, zero-dependency, static photobooth web application built with pur
    - **Local IndexedDB Cache**: Caches frame base64 data locally so subsequent loads are instant.
    - **Built-in Fallback Template**: 600x1800px 4-cut vertical strip in royal purple & gold, ensuring 100% functionality out of the box even before any frame is uploaded.
 
-5. **Admin Mode — No-Code Auto-Detect Transparent & Chroma-Key Slots**:
+5. **Admin Mode: No-Code Auto-Detect Transparent & Chroma-Key Slots**:
    - Discreet Admin button protected by PIN modal (`APP_CONFIG.adminPin = "2026"`).
    - Upload transparent `.png` frame designs or Canva designs with bright chroma-key green boxes (`r < 90 && g > 190 && b < 90`).
    - **Auto-Convert Green to Transparent**: Automatically converts green box pixels to transparent (`alpha = 0`) on an offscreen canvas with zero manual background removal needed.
@@ -76,7 +76,7 @@ photostrip/
 
 ```javascript
 export const APP_CONFIG = {
-  eventName: "Bingkai Bisu — Fixlens Festival 2026",
+  eventName: "Bingkai Bisu: Fixlens Festival 2026",
   adminPin: "2026",
   countdownSeconds: 3,
   livePhotoDurationMs: 1500,

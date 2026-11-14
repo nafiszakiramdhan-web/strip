@@ -1,5 +1,5 @@
 // ==========================================================================
-// BINGKAI BISU — FIXLENS FESTIVAL 2026 DIGITAL PHOTOBOOTH APPLICATION
+// BINGKAI BISU: FIXLENS FESTIVAL 2026 DIGITAL PHOTOBOOTH APPLICATION
 // Core Controller (ES Module)
 // ==========================================================================
 
@@ -280,13 +280,13 @@ function generateFallbackFrame() {
     ctx.fillRect(s.x + s.width + 2, s.y + s.height - cSize + 4, 2, cSize);
   });
 
-  // Footer Branding: "BINGKAI BISU — FIXLENS FESTIVAL 2026"
+  // Footer Branding: "BINGKAI BISU: FIXLENS FESTIVAL 2026"
   ctx.textAlign = 'center';
   
   // Ornamental divider
   ctx.fillStyle = '#D4AF37';
   ctx.font = '16px serif';
-  ctx.fillText('✦  ———————————————  ✦', 300, 1530);
+  ctx.fillText('✦  * * * * * * * * * *  ✦', 300, 1530);
 
   // Main Festival Heading
   ctx.fillStyle = '#F4D35E';
@@ -327,7 +327,7 @@ async function loadAllFrames() {
 
   const framesList = [];
 
-  // 1. Official Festival Frame: "Bingkai Bisu — Fixlens Festival 2026" (4-Cut Strip)
+  // 1. Official Festival Frame: "Bingkai Bisu: Fixlens Festival 2026" (4-Cut Strip)
   try {
     const slots4Cut = [
       { x: 19, y: 31, width: 184, height: 119 },
@@ -337,7 +337,7 @@ async function loadAllFrames() {
     ];
     framesList.push({
       id: 'official-fixfest-4cut',
-      name: 'Bingkai Bisu — Fixlens 4-Cut Strip (4 Pose)',
+      name: 'Bingkai Bisu: Fixlens 4-Cut Strip (4 Pose)',
       fileId: 'official-fixfest-4cut',
       slots: slots4Cut,
       width: 221,
@@ -348,7 +348,7 @@ async function loadAllFrames() {
     console.warn("Notice: could not initialize 4-cut official frame:", err);
   }
 
-  // 2. Official Festival Frame: "Bingkai Bisu — Fixlens Festival 2026" (3 Poses)
+  // 2. Official Festival Frame: "Bingkai Bisu: Fixlens Festival 2026" (3 Poses)
   try {
     const officialSlots = [
       { x: 52, y: 358, width: 239, height: 94 },
@@ -357,7 +357,7 @@ async function loadAllFrames() {
     ];
     framesList.push({
       id: 'official-fixfest-2026',
-      name: 'Bingkai Bisu — Official Fixlens Festival (3 Pose)',
+      name: 'Bingkai Bisu: Official Fixlens Festival (3 Pose)',
       fileId: 'official-fixfest-2026',
       slots: officialSlots,
       width: 341,
