@@ -317,7 +317,28 @@ async function loadAllFrames() {
 
   const framesList = [];
 
-  // 1. Official Festival Frame: "Bingkai Bisu — Fixlens Festival 2026" (3 Poses)
+  // 1. Official Festival Frame: "Bingkai Bisu — Fixlens Festival 2026" (4-Cut Strip)
+  try {
+    const slots4Cut = [
+      { x: 19, y: 31, width: 184, height: 119 },
+      { x: 20, y: 164, width: 182, height: 118 },
+      { x: 20, y: 295, width: 182, height: 119 },
+      { x: 20, y: 427, width: 182, height: 118 }
+    ];
+    framesList.push({
+      id: 'official-fixfest-4cut',
+      name: 'Bingkai Bisu — Fixlens 4-Cut Strip (4 Pose)',
+      fileId: 'official-fixfest-4cut',
+      slots: slots4Cut,
+      width: 221,
+      height: 670,
+      dataUrl: 'assets/frames/bingkai-bisu-4cut.png'
+    });
+  } catch (err) {
+    console.warn("Notice: could not initialize 4-cut official frame:", err);
+  }
+
+  // 2. Official Festival Frame: "Bingkai Bisu — Fixlens Festival 2026" (3 Poses)
   try {
     const officialSlots = [
       { x: 52, y: 358, width: 239, height: 94 },
