@@ -167,11 +167,20 @@ async function setCachedFrameDataUrl(fileId, dataUrl) {
 // --------------------------------------------------------------------------
 
 /**
+ * Safely strips any Data URL header (e.g. data:image/png;base64, or data:video/webm;base64,)
+ */
+function stripBase64Header(dataUrlOrBase64) {
+  if (!dataUrlOrBase64) return "";
+  const commaIdx = dataUrlOrBase64.indexOf(',');
+  return commaIdx !== -1 ? dataUrlOrBase64.slice(commaIdx + 1) : dataUrlOrBase64;
+}
+
+/**
  * Uploads Base64 payload to Google Drive via GAS Web App.
- * Uses text/plain to avoid CORS preflight options check.
+ * Uses text/plain;charset=utf-8 to prevent browser CORS preflight blocks.
  */
 async function uploadToGas(base64Data, mimeType, filename) {
-  const cleanBase64 = base64Data.includes('base64,') ? base64Data.split('base64,')[1] : base64Data;
+  const cleanBase64 = stripBase64Header(base64Data);
   const payload = JSON.stringify({
     base64: cleanBase64,
     mimeType: mimeType,
@@ -185,10 +194,11 @@ async function uploadToGas(base64Data, mimeType, filename) {
   });
 
   if (!response.ok) {
-    throw new Error(`Gagal mengunggah ke GAS: ${response.statusText}`);
+    throw new Error(`Google Apps Script mengembalikan status HTTP ${response.status}: ${response.statusText}`);
   }
 
-  return await response.json();
+  const result = await response.json();
+  return result;
 }
 
 /**
@@ -933,10 +943,21 @@ async function startResultFlow() {
   const statusDesc = document.getElementById('upload-status-desc');
   const finalImg = document.getElementById('final-strip-img');
   const btnWebm = document.getElementById('btn-download-webm');
+  const qrCodeWrapper = document.getElementById('qr-code-wrapper');
+  const cloudErrorBanner = document.getElementById('cloud-error-banner');
+  const cloudErrorSub = document.getElementById('cloud-error-sub-text');
+  const driveLinkInput = document.getElementById('drive-link-input');
+  const qrBox = document.getElementById('qrcode-box');
 
   uploadingCard.classList.remove('hidden');
   successCard.classList.add('hidden');
   finalImg.src = state.finalPngDataUrl;
+
+  // Clear previous states
+  if (qrBox) qrBox.innerHTML = '';
+  if (driveLinkInput) driveLinkInput.value = '';
+  if (cloudErrorBanner) cloudErrorBanner.classList.add('hidden');
+  if (qrCodeWrapper) qrCodeWrapper.classList.remove('hidden');
 
   try {
     // 1. Generate Live Photo if enabled
@@ -962,6 +983,18 @@ async function startResultFlow() {
     const uploadRes = await uploadToGas(state.finalPngDataUrl, 'image/png', pngFilename);
     state.gasResult = uploadRes;
 
+    // Strictly validate that response status is "success"
+    if (!uploadRes || uploadRes.status !== 'success') {
+      const errMsg = uploadRes?.message || uploadRes?.error || "Respon dari Google Apps Script tidak berstatus success.";
+      throw new Error(errMsg);
+    }
+
+    // Inspect viewUrl or downloadUrl
+    const targetUrl = uploadRes.viewUrl || uploadRes.downloadUrl;
+    if (!targetUrl) {
+      throw new Error("Tautan file (viewUrl / downloadUrl) tidak ditemukan dalam respon Google Apps Script.");
+    }
+
     // 3. Upload Live Photo WebM if available
     if (webmBlob) {
       try {
@@ -973,27 +1006,39 @@ async function startResultFlow() {
       }
     }
 
-    // 4. Generate QR Code pointing to viewUrl
-    const targetUrl = uploadRes.viewUrl || uploadRes.downloadUrl || window.location.href;
+    // 4. ONLY generate QR Code if upload status is strictly "success" with valid Google Drive URL
+    if (qrCodeWrapper) qrCodeWrapper.classList.remove('hidden');
+    if (cloudErrorBanner) cloudErrorBanner.classList.add('hidden');
     renderQrCode(targetUrl);
-
-    document.getElementById('drive-link-input').value = targetUrl;
+    if (driveLinkInput) driveLinkInput.value = targetUrl;
 
     // Show Success State
     uploadingCard.classList.add('hidden');
     successCard.classList.remove('hidden');
 
   } catch (err) {
-    console.error("Gagal mengunggah ke Cloud:", err);
-    // Even if cloud upload fails, show result with local download!
-    statusTitle.textContent = "Penyimpanan Lokal Siap!";
-    statusDesc.textContent = "Tidak dapat terhubung ke cloud. Anda tetap dapat mengunduh foto strip langsung di perangkat ini.";
+    console.error("Gagal mengunggah ke Cloud Google Drive:", err);
+
     uploadingCard.classList.add('hidden');
     successCard.classList.remove('hidden');
 
-    // Generate fallback QR for current page URL
-    renderQrCode(window.location.href);
-    document.getElementById('drive-link-input').value = window.location.href;
+    // DO NOT generate QR Code pointing to GitHub Pages!
+    if (qrBox) qrBox.innerHTML = '';
+    if (driveLinkInput) driveLinkInput.value = '';
+    if (qrCodeWrapper) qrCodeWrapper.classList.add('hidden');
+
+    // Display explicit error notification
+    if (cloudErrorBanner) {
+      cloudErrorBanner.classList.remove('hidden');
+      if (cloudErrorSub) {
+        cloudErrorSub.textContent = `Gagal mengunggah ke cloud (${err.message || 'Izin/Akses Ditolak'}). Mengunduh file secara lokal ke perangkat Anda...`;
+      }
+    }
+
+    // Default to offering a standard local .png file download
+    if (state.finalPngDataUrl) {
+      downloadFile(state.finalPngDataUrl, `bingkai-bisu-${Date.now()}.png`);
+    }
   }
 }
 
@@ -1001,7 +1046,7 @@ function renderQrCode(url) {
   const qrBox = document.getElementById('qrcode-box');
   qrBox.innerHTML = '';
   
-  if (window.QRCode) {
+  if (window.QRCode && url) {
     new QRCode(qrBox, {
       text: url,
       width: 190,
@@ -1363,6 +1408,10 @@ document.addEventListener('DOMContentLoaded', () => {
     state.finalPngDataUrl = null;
     state.finalWebmBlob = null;
     state.gasResult = null;
+    const cloudErrorBanner = document.getElementById('cloud-error-banner');
+    const qrCodeWrapper = document.getElementById('qr-code-wrapper');
+    if (cloudErrorBanner) cloudErrorBanner.classList.add('hidden');
+    if (qrCodeWrapper) qrCodeWrapper.classList.remove('hidden');
     goToStage(1);
   });
 

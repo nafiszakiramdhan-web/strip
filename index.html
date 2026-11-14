@@ -302,16 +302,26 @@
           <!-- Main Result Success Card -->
           <div id="result-success-card" class="result-card success-card hidden">
             
-            <div class="qr-showcase">
-              <div class="qr-ornament-border">
-                <div id="qrcode-box" class="qrcode-box"></div>
-              </div>
-              <p class="qr-hint">Arahkan kamera ponsel Anda ke kode QR di atas</p>
+            <div class="qr-showcase" id="qr-showcase-container">
+              <!-- QR Code & Link Section (Shown on Cloud Success) -->
+              <div id="qr-code-wrapper">
+                <div class="qr-ornament-border">
+                  <div id="qrcode-box" class="qrcode-box"></div>
+                </div>
+                <p class="qr-hint">Arahkan kamera ponsel Anda ke kode QR di atas</p>
 
-              <!-- Direct Link Box -->
-              <div class="link-copy-box">
-                <input type="text" id="drive-link-input" readonly value="" placeholder="Membuat tautan Google Drive...">
-                <button id="btn-copy-link" class="btn btn-gold-sm">Salin</button>
+                <!-- Direct Link Box -->
+                <div class="link-copy-box">
+                  <input type="text" id="drive-link-input" readonly value="" placeholder="Membuat tautan Google Drive...">
+                  <button id="btn-copy-link" class="btn btn-gold-sm">Salin</button>
+                </div>
+              </div>
+
+              <!-- Error Notification Banner (Shown on Cloud Error) -->
+              <div id="cloud-error-banner" class="cloud-error-box hidden">
+                <div class="cloud-error-icon">⚠️</div>
+                <h4 class="cloud-error-title">Gagal mengunggah ke cloud, mengunduh file secara lokal...</h4>
+                <p class="cloud-error-sub" id="cloud-error-sub-text">Layanan Google Apps Script tidak dapat diakses atau dibatasi izin. Foto strip Anda telah diunduh langsung secara lokal.</p>
               </div>
             </div>
 
