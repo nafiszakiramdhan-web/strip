@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bingkai Bisu — Fixlens Festival 2026</title>
+  <meta name="description" content="Digital Photobooth untuk Bingkai Bisu — Fixlens Festival 2026. Abadikan momen tak bersuara dalam bingkai elegan.">
+
+  <!-- Google Fonts: Cinzel & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- QRCode.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Noise & Ambient Glow Layers -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- Main App Shell -->
+  <div class="app-shell">
+    
+    <!-- Top Header & Navigation -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-ornament left" aria-hidden="true">✦</div>
+        <div class="brand-text">
+          <h1 class="brand-title">BINGKAI BISU</h1>
+          <p class="brand-subtitle">FIXLENS FESTIVAL 2026</p>
+        </div>
+        <div class="brand-ornament right" aria-hidden="true">✦</div>
+      </div>
+
+      <!-- Stage Stepper Indicator -->
+      <nav class="stepper-nav" aria-label="Langkah Photobooth">
+        <div class="step-item active" data-step="1">
+          <span class="step-num">1</span>
+          <span class="step-label">Bingkai</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="2">
+          <span class="step-num">2</span>
+          <span class="step-label">Kamera</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="3">
+          <span class="step-num">3</span>
+          <span class="step-label">Pratinjau</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item" data-step="4">
+          <span class="step-num">4</span>
+          <span class="step-label">Unduh & QR</span>
+        </div>
+      </nav>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <button id="btn-fullscreen" class="icon-btn" title="Layar Penuh" aria-label="Layar Penuh">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+          </svg>
+        </button>
+        <button id="btn-open-admin-pin" class="ghost-btn admin-badge-btn" title="Panel Admin">
+          <span>Admin</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area / Stage Container -->
+    <main class="app-main">
+
+      <!-- ==============================================
+           STAGE 1: SELECT FRAME
+      =============================================== -->
+      <section id="stage-select" class="stage-section active">
+        <div class="section-intro">
+          <span class="sub-badge">Langkah 1</span>
+          <h2 class="display-heading">Pilih Bingkai Kenangan</h2>
+          <p class="section-desc">Pilih desain frame eksklusif Fixlens Festival untuk mengabadikan momen Anda.</p>
+        </div>
+
+        <div id="frames-loading" class="loading-state">
+          <div class="vintage-spinner"></div>
+          <p>Memuat koleksi bingkai festival...</p>
+        </div>
+
+        <div id="frames-grid" class="frames-grid">
+          <!-- Dynamically populated with frames -->
+        </div>
+
+        <div class="stage-bottom-action">
+          <button id="btn-confirm-frame" class="btn btn-gold btn-large" disabled>
+            <span>Lanjut ke Kamera</span>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==============================================
+           STAGE 2: CAMERA & CAPTURE
+      =============================================== -->
+      <section id="stage-camera" class="stage-section">
+        <div class="camera-stage-layout">
+          
+          <!-- Top Camera Bar -->
+          <div class="camera-top-bar">
+            <button id="btn-back-to-frames" class="ghost-btn">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+              </svg>
+              <span>Ganti Bingkai</span>
+            </button>
+
+            <!-- Pose Status Badge -->
+            <div class="pose-badge-wrap">
+              <span class="pose-text" id="pose-indicator">Pose 1 dari 4</span>
+              <div class="pose-dots" id="pose-dots-bar"></div>
+            </div>
+
+            <!-- Live Photo Toggle -->
+            <label class="live-photo-toggle" title="Aktifkan Live Photo (Video pendek 1.5 detik per pose)">
+              <input type="checkbox" id="toggle-live-photo" checked>
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm-2-12.5v9l6-4.5z"/>
+                </svg>
+                Live Photo
+              </span>
+            </label>
+          </div>
+
+          <!-- Live Camera Viewport Box -->
+          <div class="camera-viewport-container">
+            <div class="camera-viewport" id="camera-viewport">
+              <video id="camera-video" autoplay playsinline muted></video>
+              
+              <!-- Frame Guide Overlay (Subtle guideline showing current slot aspect ratio) -->
+              <div class="slot-guide-overlay" id="slot-guide-box">
+                <div class="corner-guide tl"></div>
+                <div class="corner-guide tr"></div>
+                <div class="corner-guide bl"></div>
+                <div class="corner-guide br"></div>
+              </div>
+
+              <!-- Big Countdown Ring Overlay -->
+              <div class="countdown-overlay" id="countdown-overlay">
+                <div class="countdown-circle">
+                  <span id="countdown-number">3</span>
+                </div>
+                <p class="countdown-sub">Siap dalam posisi...</p>
+              </div>
+
+              <!-- White Shutter Flash Effect -->
+              <div class="shutter-flash" id="shutter-flash"></div>
+            </div>
+
+            <!-- Side Thumbnail Strip of Captured Poses -->
+            <div class="captured-strip-rail" id="captured-thumbnails-rail">
+              <!-- Dynamically populated pose thumbnails -->
+            </div>
+          </div>
+
+          <!-- Bottom Camera Controls -->
+          <div class="camera-controls">
+            <!-- Filter Bar -->
+            <div class="filter-selector-bar">
+              <button class="filter-pill active" data-filter="normal">
+                <span class="filter-dot normal"></span>
+                <span>Normal</span>
+              </button>
+              <button class="filter-pill" data-filter="bw">
+                <span class="filter-dot bw"></span>
+                <span>Classic B&W</span>
+              </button>
+              <button class="filter-pill" data-filter="vintage">
+                <span class="filter-dot vintage"></span>
+                <span>Warm Vintage</span>
+              </button>
+            </div>
+
+            <!-- Shutter Action Buttons -->
+            <div class="shutter-action-row">
+              <button id="btn-switch-camera" class="icon-circle-btn" title="Ganti Kamera">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                  <path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/>
+                </svg>
+              </button>
+
+              <button id="btn-start-countdown" class="shutter-trigger-btn" aria-label="Ambil Foto">
+                <div class="shutter-inner">
+                  <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor">
+                    <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                  </svg>
+                </div>
+              </button>
+
+              <div class="controls-spacer"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ==============================================
+           STAGE 3: PREVIEW & FILTER
+      =============================================== -->
+      <section id="stage-preview" class="stage-section">
+        <div class="section-intro">
+          <span class="sub-badge">Langkah 3</span>
+          <h2 class="display-heading">Pratinjau & Sempurnakan</h2>
+          <p class="section-desc">Lihat hasil foto strip Anda. Ganti filter atau foto ulang pose tertentu sebelum mencetak.</p>
+        </div>
+
+        <div class="preview-stage-container">
+          
+          <!-- Left: Big Strip Preview Canvas -->
+          <div class="preview-canvas-wrapper">
+            <div class="preview-strip-frame">
+              <canvas id="preview-strip-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Right: Editing Controls & Individual Retakes -->
+          <div class="preview-sidebar">
+            
+            <!-- Filter Changer -->
+            <div class="preview-card">
+              <h3 class="card-heading">Pilihan Efek Warna</h3>
+              <div class="filter-selector-bar horizontal">
+                <button class="filter-pill active" data-preview-filter="normal">Normal</button>
+                <button class="filter-pill" data-preview-filter="bw">Classic B&W</button>
+                <button class="filter-pill" data-preview-filter="vintage">Warm Vintage</button>
+              </div>
+            </div>
+
+            <!-- Individual Retake List -->
+            <div class="preview-card">
+              <div class="card-heading-row">
+                <h3 class="card-heading">Daftar Pose Foto</h3>
+                <span class="card-subnote">Ketuk untuk foto ulang</span>
+              </div>
+              <div class="retake-slots-list" id="retake-slots-list">
+                <!-- Dynamically rendered slot previews with retake buttons -->
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="preview-actions-column">
+              <button id="btn-retake-all" class="btn btn-outline">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                  <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
+                <span>Foto Ulang Semua</span>
+              </button>
+
+              <button id="btn-finalize-strip" class="btn btn-gold btn-large">
+                <span>Cetak & Buat QR Code</span>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ==============================================
+           STAGE 4: QR CODE & RESULT
+      =============================================== -->
+      <section id="stage-result" class="stage-section">
+        <div class="section-intro">
+          <span class="sub-badge">Langkah 4</span>
+          <h2 class="display-heading">Kenangan Anda Telah Siap</h2>
+          <p class="section-desc">Pindai kode QR di bawah untuk mengunduh strip foto langsung ke ponsel Anda.</p>
+        </div>
+
+        <div class="result-layout">
+          
+          <!-- Cloud Uploading Overlay / Status -->
+          <div id="result-uploading-card" class="result-card uploading-card">
+            <div class="vintage-spinner large"></div>
+            <h3 class="upload-title" id="upload-status-title">Mengunggah ke Cloud Festival...</h3>
+            <p class="upload-desc" id="upload-status-desc">Menyimpan strip foto definisi tinggi ke Google Drive aman.</p>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" id="upload-progress-fill"></div>
+            </div>
+          </div>
+
+          <!-- Main Result Success Card -->
+          <div id="result-success-card" class="result-card success-card hidden">
+            
+            <div class="qr-showcase">
+              <div class="qr-ornament-border">
+                <div id="qrcode-box" class="qrcode-box"></div>
+              </div>
+              <p class="qr-hint">Arahkan kamera ponsel Anda ke kode QR di atas</p>
+
+              <!-- Direct Link Box -->
+              <div class="link-copy-box">
+                <input type="text" id="drive-link-input" readonly value="" placeholder="Membuat tautan Google Drive...">
+                <button id="btn-copy-link" class="btn btn-gold-sm">Salin</button>
+              </div>
+            </div>
+
+            <!-- Download Buttons -->
+            <div class="download-actions-grid">
+              <button id="btn-download-png" class="btn btn-gold">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
+                </svg>
+                <span>Unduh Strip Foto (.PNG)</span>
+              </button>
+
+              <button id="btn-download-webm" class="btn btn-purple hidden">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
+                </svg>
+                <span>Unduh Live Photo (.WEBM)</span>
+              </button>
+            </div>
+
+            <div class="result-footer-nav">
+              <button id="btn-new-session" class="btn btn-outline btn-large">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                </svg>
+                <span>Sesi Baru / Foto Lagi</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Finished Preview Strip Side Card -->
+          <div class="result-preview-column">
+            <div class="strip-showcase-box">
+              <img id="final-strip-img" alt="Pratinjau Strip Foto Final" src="">
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-inner">
+        <span class="footer-credit">Bingkai Bisu &bull; Fixlens Festival 2026</span>
+        <button id="btn-footer-admin" class="footer-admin-link">Pengaturan Admin</button>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ==============================================
+       ADMIN PIN MODAL
+  =============================================== -->
+  <dialog id="admin-pin-dialog" class="vintage-dialog">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h3 class="dialog-title">Akses Khusus Admin</h3>
+        <p class="dialog-desc">Masukkan 4-digit PIN untuk mengelola koleksi bingkai festival.</p>
+      </div>
+
+      <form id="form-admin-pin" method="dialog" class="pin-form">
+        <div class="pin-input-wrap">
+          <input type="password" id="input-admin-pin" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off" required>
+        </div>
+        <p id="pin-error-msg" class="error-msg hidden">PIN salah. Silakan coba lagi.</p>
+
+        <div class="dialog-actions">
+          <button type="button" id="btn-close-pin-dialog" class="btn btn-outline">Batal</button>
+          <button type="submit" class="btn btn-gold">Masuk</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <!-- ==============================================
+       ADMIN MANAGEMENT MODAL / DRAWER
+  =============================================== -->
+  <dialog id="admin-dashboard-dialog" class="vintage-dialog wide-dialog">
+    <div class="dialog-content">
+      
+      <div class="dialog-header row-between">
+        <div>
+          <h2 class="dialog-title">Panel Manajemen Bingkai</h2>
+          <p class="dialog-desc">Deteksi otomatis slot foto transparan & sinkronisasi Firestore cloud.</p>
+        </div>
+        <button type="button" id="btn-close-admin-dash" class="icon-btn" aria-label="Tutup Panel">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="upload">Unggah Bingkai Baru</button>
+        <button class="tab-btn" data-tab="list">Daftar Bingkai Aktif (<span id="admin-frames-count">0</span>)</button>
+      </div>
+
+      <!-- Tab 1: Upload & Auto-Detect -->
+      <div id="tab-content-upload" class="admin-tab-content active">
+        <div class="admin-grid-layout">
+          
+          <!-- Upload Form & Settings -->
+          <div class="admin-form-col">
+            
+            <div class="form-group">
+              <label for="admin-frame-name">Nama Desain Bingkai</label>
+              <input type="text" id="admin-frame-name" class="text-input" placeholder="Contoh: Royal Purple 4-Cut Classic">
+            </div>
+
+            <div class="form-group">
+              <label>Berkas PNG Transparan</label>
+              <div class="dropzone" id="frame-dropzone">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="currentColor">
+                  <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+                </svg>
+                <p class="dropzone-text">Tarik & lepas file PNG transparan di sini, atau <strong>pilih berkas</strong></p>
+                <span class="dropzone-sub">Ukuran direkomendasikan: 600x1800 px atau 1200x1800 px (PNG dengan lubang transparan)</span>
+                <input type="file" id="admin-frame-file" accept="image/png" class="file-input-hidden">
+              </div>
+            </div>
+
+            <!-- Auto-detection status & metrics -->
+            <div class="detection-metrics-card" id="detection-metrics-box">
+              <h4 class="metrics-title">Status Deteksi Slot Transparan:</h4>
+              <p id="metrics-status-text" class="metrics-status">Belum ada berkas dipilih.</p>
+              <div id="detected-slots-details" class="slots-chips-list"></div>
+            </div>
+
+            <!-- Publish Button -->
+            <div class="form-actions">
+              <button id="btn-publish-frame" class="btn btn-gold btn-large" disabled>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M5 4v2h14V4H5zm0 10h4v6h6v-6h4l-7-7-7 7z"/>
+                </svg>
+                <span>Unggah & Terbitkan Bingkai</span>
+              </button>
+            </div>
+
+            <div id="admin-publish-progress" class="publish-progress-box hidden">
+              <div class="vintage-spinner"></div>
+              <p id="admin-publish-msg">Mengunggah ke Google Drive & Firestore...</p>
+            </div>
+
+          </div>
+
+          <!-- Visual Slot Preview Canvas -->
+          <div class="admin-preview-col">
+            <h4 class="col-title">Pratinjau Deteksi Slot Foto</h4>
+            <p class="col-sub">Kotak merah/emas menandakan area foto yang terdeteksi otomatis.</p>
+            <div class="canvas-detect-wrap">
+              <canvas id="admin-detect-canvas"></canvas>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tab 2: Existing Frames List -->
+      <div id="tab-content-list" class="admin-tab-content">
+        <div class="existing-frames-wrap">
+          <div id="admin-frames-list" class="admin-frames-list">
+            <!-- Dynamically populated with active frames -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </dialog>
+
+  <!-- Offscreen Processing Canvases (Hidden) -->
+  <canvas id="offscreen-composite-canvas" style="display:none;"></canvas>
+  <canvas id="offscreen-video-canvas" style="display:none;"></canvas>
+
+  <!-- Application Script (ES Module) -->
+  <script type="module" src="app.js"></script>
+
+</body>
+</html>
