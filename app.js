@@ -317,7 +317,27 @@ async function loadAllFrames() {
 
   const framesList = [];
 
-  // 1. Always add built-in template as guaranteed option
+  // 1. Official Festival Frame: "Bingkai Bisu — Fixlens Festival 2026" (3 Poses)
+  try {
+    const officialSlots = [
+      { x: 52, y: 358, width: 239, height: 94 },
+      { x: 53, y: 493, width: 238, height: 94 },
+      { x: 52, y: 629, width: 239, height: 94 }
+    ];
+    framesList.push({
+      id: 'official-fixfest-2026',
+      name: 'Bingkai Bisu — Official Fixlens Festival (3 Pose)',
+      fileId: 'official-fixfest-2026',
+      slots: officialSlots,
+      width: 341,
+      height: 1024,
+      dataUrl: 'assets/frames/bingkai-bisu-official.png'
+    });
+  } catch (err) {
+    console.warn("Notice: could not initialize official frame:", err);
+  }
+
+  // 2. Built-in Canvas Fallback Template (4 Poses)
   const fallback = generateFallbackFrame();
   framesList.push(fallback);
 
@@ -508,7 +528,12 @@ function updateGuideOverlay() {
   const slotRatio = currentSlot.width / currentSlot.height;
   
   // Adjust guide box aspect ratio
-  if (slotRatio > 1.2) {
+  if (slotRatio > 2.0) {
+    guideBox.style.top = '22%';
+    guideBox.style.bottom = '22%';
+    guideBox.style.left = '6%';
+    guideBox.style.right = '6%';
+  } else if (slotRatio > 1.2) {
     guideBox.style.top = '14%';
     guideBox.style.bottom = '14%';
     guideBox.style.left = '12%';
