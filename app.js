@@ -990,20 +990,26 @@ function downloadFile(url, filename) {
 // --------------------------------------------------------------------------
 
 /**
- * Scans uploaded PNG image pixels for transparent apertures (alpha < 15)
+ * Scans uploaded PNG image pixels for transparent apertures (alpha < 10)
  * using Connected-Component Labeling / Flood Fill to auto-detect photo slots.
+ * Supports both natively transparent PNGs and chroma-key green converted frames.
  */
-function detectTransparentSlots(img) {
-  const W = img.naturalWidth;
-  const H = img.naturalHeight;
+function detectTransparentSlots(sourceImgOrCanvas, existingImgData = null) {
+  const W = sourceImgOrCanvas.naturalWidth || sourceImgOrCanvas.width;
+  const H = sourceImgOrCanvas.naturalHeight || sourceImgOrCanvas.height;
 
-  const off = document.createElement('canvas');
-  off.width = W;
-  off.height = H;
-  const ctx = off.getContext('2d');
-  ctx.drawImage(img, 0, 0, W, H);
+  let imgData;
+  if (existingImgData && existingImgData.data) {
+    imgData = existingImgData.data;
+  } else {
+    const off = document.createElement('canvas');
+    off.width = W;
+    off.height = H;
+    const ctx = off.getContext('2d');
+    ctx.drawImage(sourceImgOrCanvas, 0, 0, W, H);
+    imgData = ctx.getImageData(0, 0, W, H).data;
+  }
 
-  const imgData = ctx.getImageData(0, 0, W, H).data;
   const step = Math.max(3, Math.floor(Math.min(W, H) / 300));
   const visited = new Uint8Array(W * H);
   const slotsFound = [];
@@ -1017,8 +1023,8 @@ function detectTransparentSlots(img) {
       if (visited[idx]) continue;
 
       const alpha = imgData[idx * 4 + 3];
-      if (alpha < 20) {
-        // Transparent seed found! Execute BFS flood fill
+      if (alpha < 10) {
+        // Transparent (or chroma-key converted) seed found! Execute BFS flood fill
         let minX = x, maxX = x, minY = y, maxY = y;
         let pixelCount = 0;
 
@@ -1050,7 +1056,7 @@ function detectTransparentSlots(img) {
               const nIdx = ny * W + nx;
               if (!visited[nIdx]) {
                 visited[nIdx] = 1;
-                if (imgData[nIdx * 4 + 3] < 20) {
+                if (imgData[nIdx * 4 + 3] < 10) {
                   queue.push(nx, ny);
                 }
               }
@@ -1062,28 +1068,28 @@ function detectTransparentSlots(img) {
         while (minX > 0) {
           let hasTrans = false;
           for (let py = minY; py <= maxY; py += step) {
-            if (imgData[(py * W + (minX - 1)) * 4 + 3] < 20) { hasTrans = true; break; }
+            if (imgData[(py * W + (minX - 1)) * 4 + 3] < 10) { hasTrans = true; break; }
           }
           if (hasTrans) minX--; else break;
         }
         while (maxX < W - 1) {
           let hasTrans = false;
           for (let py = minY; py <= maxY; py += step) {
-            if (imgData[(py * W + (maxX + 1)) * 4 + 3] < 20) { hasTrans = true; break; }
+            if (imgData[(py * W + (maxX + 1)) * 4 + 3] < 10) { hasTrans = true; break; }
           }
           if (hasTrans) maxX++; else break;
         }
         while (minY > 0) {
           let hasTrans = false;
           for (let px = minX; px <= maxX; px += step) {
-            if (imgData[((minY - 1) * W + px) * 4 + 3] < 20) { hasTrans = true; break; }
+            if (imgData[((minY - 1) * W + px) * 4 + 3] < 10) { hasTrans = true; break; }
           }
           if (hasTrans) minY--; else break;
         }
         while (maxY < H - 1) {
           let hasTrans = false;
           for (let px = minX; px <= maxX; px += step) {
-            if (imgData[((maxY + 1) * W + px) * 4 + 3] < 20) { hasTrans = true; break; }
+            if (imgData[((maxY + 1) * W + px) * 4 + 3] < 10) { hasTrans = true; break; }
           }
           if (hasTrans) maxY++; else break;
         }
@@ -1117,11 +1123,15 @@ function detectTransparentSlots(img) {
 
 function renderAdminDetectionVisualizer(img, slots) {
   const canvas = document.getElementById('admin-detect-canvas');
-  canvas.width = img.naturalWidth;
-  canvas.height = img.naturalHeight;
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
   const ctx = canvas.getContext('2d');
 
-  // Draw frame image
+  // Checkerboard/dark background behind image to visualize transparency
+  ctx.fillStyle = '#0f051d';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Draw cleaned frame image
   ctx.drawImage(img, 0, 0);
 
   // Overlay detected slot bounding boxes
@@ -1132,7 +1142,7 @@ function renderAdminDetectionVisualizer(img, slots) {
 
     // Dashed border
     ctx.strokeStyle = '#F4D35E';
-    ctx.lineWidth = Math.max(3, Math.floor(img.naturalWidth / 200));
+    ctx.lineWidth = Math.max(3, Math.floor(canvas.width / 200));
     ctx.setLineDash([12, 8]);
     ctx.strokeRect(s.x, s.y, s.width, s.height);
     ctx.setLineDash([]);
@@ -1146,7 +1156,7 @@ function renderAdminDetectionVisualizer(img, slots) {
     ctx.fillStyle = '#F4D35E';
     ctx.font = `bold ${Math.max(16, Math.floor(badgeH * 0.6))}px "Plus Jakarta Sans", sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillText(`Slot #${idx + 1}`, s.x + 8 + badgeW / 2, s.y + 8 + badgeH * 0.7);
+    ctx.fillText(`Pose ${idx + 1}`, s.x + 8 + badgeW / 2, s.y + 8 + badgeH * 0.7);
   });
 }
 
@@ -1392,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handleAdminFile(file) {
     if (file.type !== 'image/png') {
-      alert("Harap pilih berkas PNG dengan transparansi.");
+      alert("Harap pilih berkas PNG (transparan atau dengan kotak hijau Canva).");
       return;
     }
 
@@ -1404,13 +1414,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const dataUrl = ev.target.result;
-      state.adminImageDataUrl = dataUrl;
-      const img = await loadImage(dataUrl);
-      state.adminFrameImg = img;
+      const rawDataUrl = ev.target.result;
+      const rawImg = await loadImage(rawDataUrl);
+      const W = rawImg.naturalWidth;
+      const H = rawImg.naturalHeight;
 
-      // Execute Pixel-Scanning Auto-Slot Detector
-      const detectedSlots = detectTransparentSlots(img);
+      // 1. Draw onto offscreen canvas for Chroma-Key Green to Transparent conversion
+      const cleanCanvas = document.createElement('canvas');
+      cleanCanvas.width = W;
+      cleanCanvas.height = H;
+      const cleanCtx = cleanCanvas.getContext('2d');
+      cleanCtx.drawImage(rawImg, 0, 0, W, H);
+
+      const imgDataObj = cleanCtx.getImageData(0, 0, W, H);
+      const data = imgDataObj.data;
+      let greenPixelsFound = 0;
+
+      // Loop through every pixel in ImageData:
+      // Whenever a pixel matches bright green (r < 90 && g > 190 && b < 90),
+      // set its alpha channel to 0 (data[i + 3] = 0) so it becomes genuinely transparent.
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const a = data[i + 3];
+
+        if (a > 0 && r < 90 && g > 190 && b < 90) {
+          data[i + 3] = 0;
+          greenPixelsFound++;
+        }
+      }
+
+      // Put processed ImageData back onto canvas
+      cleanCtx.putImageData(imgDataObj, 0, 0);
+
+      // Export processed transparent canvas so published frame works cleanly
+      const cleanedDataUrl = cleanCanvas.toDataURL('image/png');
+      state.adminImageDataUrl = cleanedDataUrl;
+
+      // Load cleaned image for visualization & rendering
+      const cleanedImg = await loadImage(cleanedDataUrl);
+      state.adminFrameImg = cleanedImg;
+
+      // 2. Run Slot Detection on the Cleaned Canvas / ImageData (where alpha < 10)
+      const detectedSlots = detectTransparentSlots(cleanCanvas, imgDataObj);
       state.adminDetectedSlots = detectedSlots;
 
       // Update metrics UI
@@ -1418,7 +1465,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const chipsList = document.getElementById('detected-slots-details');
       const publishBtn = document.getElementById('btn-publish-frame');
 
-      metricsText.textContent = `Berhasil mendeteksi ${detectedSlots.length} slot foto transparan (${img.naturalWidth} x ${img.naturalHeight} px).`;
+      const greenNote = greenPixelsFound > 0 ? ` (Dikonversi dari ${greenPixelsFound.toLocaleString()} piksel hijau chroma-key Canva)` : '';
+      metricsText.textContent = `Berhasil mendeteksi ${detectedSlots.length} slot foto${greenNote} (${W} x ${H} px).`;
       chipsList.innerHTML = '';
 
       detectedSlots.forEach((s, idx) => {
@@ -1428,8 +1476,8 @@ document.addEventListener('DOMContentLoaded', () => {
         chipsList.appendChild(chip);
       });
 
-      // Visual slot overlay
-      renderAdminDetectionVisualizer(img, detectedSlots);
+      // Visual slot overlay on the cleaned image
+      renderAdminDetectionVisualizer(cleanedImg, detectedSlots);
 
       publishBtn.disabled = detectedSlots.length === 0;
     };

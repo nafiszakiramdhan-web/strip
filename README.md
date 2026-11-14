@@ -49,11 +49,12 @@ A lightweight, zero-dependency, static photobooth web application built with pur
    - **Local IndexedDB Cache**: Caches frame base64 data locally so subsequent loads are instant.
    - **Built-in Fallback Template**: 600x1800px 4-cut vertical strip in royal purple & gold, ensuring 100% functionality out of the box even before any frame is uploaded.
 
-5. **Admin Mode — No-Code Auto-Detect Transparent Slots**:
+5. **Admin Mode — No-Code Auto-Detect Transparent & Chroma-Key Slots**:
    - Discreet Admin button protected by PIN modal (`APP_CONFIG.adminPin = "2026"`).
-   - Upload any transparent `.png` frame design.
-   - **Pixel-Scanning Auto-Slot Detector**: Uses offscreen canvas and `ctx.getImageData()` to scan for connected transparent regions (`alpha < 20`), filters noise, refines bounds with 1px precision, sorts top-to-bottom/left-to-right, and highlights slots visually on the canvas.
-   - "Unggah & Terbitkan": Automatically uploads PNG to Google Drive, saves slot coordinates to Firestore, and makes the frame live across all devices instantly.
+   - Upload transparent `.png` frame designs or Canva designs with bright chroma-key green boxes (`r < 90 && g > 190 && b < 90`).
+   - **Auto-Convert Green to Transparent**: Automatically converts green box pixels to transparent (`alpha = 0`) on an offscreen canvas with zero manual background removal needed.
+   - **Pixel-Scanning Auto-Slot Detector**: Uses offscreen canvas and `ctx.getImageData()` to scan for connected transparent regions (`alpha < 10`), filters noise, refines bounds with 1px precision, sorts top-to-bottom/left-to-right, and highlights slots visually on the canvas.
+   - "Unggah & Terbitkan": Automatically uploads cleaned transparent PNG to Google Drive, saves slot coordinates to Firestore, and makes the frame live across all devices instantly.
    - Delete existing custom frames from Firestore directly from the dashboard.
 
 ---
